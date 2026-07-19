@@ -1,0 +1,282 @@
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import streamlit as st
+
+# Configure page settings
+st.set_page_config(
+    page_title="FORESIGHT — Inventory Optimization Dashboard",
+    page_icon="🔮",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom premium CSS styling for metrics and layout
+st.markdown("""
+<style>
+    .reportview-container {
+        background: #0f1116;
+    }
+    .kpi-card {
+        background-color: #1a1f29;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 5px solid #4f46e5;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+    }
+    .kpi-card.stockout {
+        border-left: 5px solid #ef4444;
+    }
+    .kpi-card.overstock {
+        border-left: 5px solid #f59e0b;
+    }
+    .kpi-card.healthy {
+        border-left: 5px solid #10b981;
+    }
+    .kpi-title {
+        font-size: 14px;
+        color: #9ca3af;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .kpi-value {
+        font-size: 28px;
+        color: #ffffff;
+        font-weight: 700;
+    }
+    .kpi-subtitle {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Helper function to load data safely
+@st.cache_data
+def load_data():
+    processed_dir = "data/processed"
+    raw_dir = "data/raw"
+    
+    try:
+        df_risk = pd.read_csv(os.path.join(processed_dir, "risk_decisions.csv"))
+        df_forecast = pd.read_csv(os.path.join(processed_dir, "future_forecast.csv"))
+        df_sales = pd.read_csv(os.path.join(processed_dir, "clean_sales.csv"))
+        return df_risk, df_forecast, df_sales, None
+    except Exception as e:
+        return None, None, None, str(e)
+
+df_risk, df_forecast, df_sales, error_msg = load_data()
+
+# Header banner
+st.title("🔮 Project FORESIGHT")
+st.subheader("Inventory Optimization & Demand Forecasting Suite — NorthBay Living")
+
+if error_msg:
+    st.error(f"Error loading processed datasets: {error_msg}")
+    st.info("Please run the pipeline and forecast engine first to generate inputs (`make all`).")
+else:
+    # Sidebar Filters
+    st.sidebar.header("Filter Inventory View")
+    categories = ["All Categories"] + sorted(list(df_risk["category"].unique()))
+    selected_category = st.sidebar.selectbox("Category", categories)
+    
+    # Filter dataset based on category selection
+    if selected_category != "All Categories":
+        filtered_risk = df_risk[df_risk["category"] == selected_category]
+    else:
+        filtered_risk = df_risk
+        
+    skus_in_cat = sorted(list(filtered_risk["sku_id"].unique()))
+    selected_sku = st.sidebar.selectbox("SKU Deep-Dive Selection", skus_in_cat)
+    
+    # Calculate executive metrics for the current view
+    total_sales_at_risk = filtered_risk["stockout_risk_val"].sum()
+    total_capital_locked = filtered_risk["overstock_locked_capital"].sum()
+    reorder_count = (filtered_risk["quadrant"] == "Reorder Now").sum()
+    markdown_count = (filtered_risk["quadrant"] == "Markdown-Clear").sum()
+    
+    # Render KPI Cards in columns
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="kpi-card stockout">
+            <div class="kpi-title">Revenue Sales At Risk</div>
+            <div class="kpi-value">₹{total_sales_at_risk:,.0f}</div>
+            <div class="kpi-subtitle">Due to projected stockouts before delivery</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown(f"""
+        <div class="kpi-card overstock">
+            <div class="kpi-title">Capital Locked In Overstock</div>
+            <div class="kpi-value">₹{total_capital_locked:,.0f}</div>
+            <div class="kpi-subtitle">Excess stock beyond 6-week demand</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col3:
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">SKUs Requiring Reorder</div>
+            <div class="kpi-value">{reorder_count}</div>
+            <div class="kpi-subtitle">Inventory Position below safety/reorder point</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col4:
+        st.markdown(f"""
+        <div class="kpi-card healthy">
+            <div class="kpi-title">SKUs for Markdown Clearance</div>
+            <div class="kpi-value">{markdown_count}</div>
+            <div class="kpi-subtitle">SKUs with inventory > 2x forward demand</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    # Main content navigation tabs
+    tab_decisions, tab_deepdive = st.tabs(["📋 Prioritized Inventory Decisions", "📈 SKU Demand Deep-Dive"])
+    
+    with tab_decisions:
+        st.header("Decision Prioritization Grid")
+        st.write("These lists are sorted by financial impact to help operations prioritize actions.")
+        
+        dec_col1, dec_col2 = st.columns(2)
+        
+        with dec_col1:
+            st.subheader("🚨 REORDER NOW (Replenishment Action Required)")
+            df_reorder = filtered_risk[filtered_risk["quadrant"] == "Reorder Now"].sort_values(by="stockout_risk_val", ascending=False)
+            if len(df_reorder) > 0:
+                # Select only critical columns for stakeholder
+                st.dataframe(
+                    df_reorder[["sku_id", "category", "on_hand_units", "on_order_units", "lead_time_days", "lead_time_demand", "stockout_risk_val", "recommended_action"]].rename(
+                        columns={
+                            "sku_id": "SKU",
+                            "category": "Category",
+                            "on_hand_units": "On Hand",
+                            "on_order_units": "On Order",
+                            "lead_time_days": "Lead Time",
+                            "lead_time_demand": "LT Demand",
+                            "stockout_risk_val": "Sales at Risk (INR)",
+                            "recommended_action": "Action Plan"
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.success("No SKUs require immediate reordering.")
+                
+        with dec_col2:
+            st.subheader("🏷️ MARKDOWN CLEARANCE (Capital Optimization)")
+            df_markdown = filtered_risk[filtered_risk["quadrant"] == "Markdown-Clear"].sort_values(by="overstock_locked_capital", ascending=False)
+            if len(df_markdown) > 0:
+                st.dataframe(
+                    df_markdown[["sku_id", "category", "on_hand_units", "forward_demand", "overstock_locked_capital", "recommended_action"]].rename(
+                        columns={
+                            "sku_id": "SKU",
+                            "category": "Category",
+                            "on_hand_units": "On Hand",
+                            "forward_demand": "6-Wk Forecast",
+                            "overstock_locked_capital": "Locked Capital (INR)",
+                            "recommended_action": "Action Plan"
+                        }
+                    ),
+                    use_container_width=True,
+                    hide_index=True
+                )
+            else:
+                st.success("No SKUs currently flagged as overstocked.")
+                
+        # Draw a bar chart showing the categorization counts
+        st.subheader("Inventory Health Segmentation")
+        quadrant_counts = filtered_risk["quadrant"].value_counts().reset_index()
+        quadrant_counts.columns = ["Quadrant", "Count"]
+        
+        fig, ax = plt.subplots(figsize=(10, 3))
+        colors = ["#10b981" if q == "Healthy" else "#ef4444" if q == "Reorder Now" else "#f59e0b" if q == "Markdown-Clear" else "#6366f1" for q in quadrant_counts["Quadrant"]]
+        ax.barh(quadrant_counts["Quadrant"], quadrant_counts["Count"], color=colors, height=0.6)
+        ax.set_xlabel("Number of SKUs")
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        st.pyplot(fig)
+        
+    with tab_deepdive:
+        st.header(f"Demand Profile & 6-Week Forecast: {selected_sku}")
+        
+        # Extract SKU attributes
+        sku_risk_row = df_risk[df_risk["sku_id"] == selected_sku].iloc[0]
+        sku_fc = df_forecast[df_forecast["sku_id"] == selected_sku].sort_values("date")
+        sku_sales_hist = df_sales[df_sales["sku_id"] == selected_sku].sort_values("date")
+        
+        # Display SKU Metadata
+        meta_col1, meta_col2, meta_col3, meta_col4 = st.columns(4)
+        with meta_col1:
+            st.metric("Category", f"{sku_risk_row['category']} ({sku_risk_row['subcategory']})")
+            st.metric("Unit Cost", f"₹{sku_risk_row['unit_cost']:,.0f}")
+        with meta_col2:
+            st.metric("Stock On Hand", f"{sku_risk_row['on_hand_units']:.0f} units")
+            st.metric("Stock On Order", f"{sku_risk_row['on_order_units']:.0f} units")
+        with meta_col3:
+            st.metric("Lead Time", f"{sku_risk_row['lead_time_days']:.0f} days")
+            st.metric("Reorder Point", f"{sku_risk_row['reorder_point']:.0f} units")
+        with meta_col4:
+            st.metric("Lead Time Demand", f"{sku_risk_row['lead_time_demand']:.1f} units")
+            st.metric("Forward 6-Wk Demand", f"{sku_risk_row['forward_demand']:.1f} units")
+            
+        # Recommendations Alert
+        quad = sku_risk_row["quadrant"]
+        if quad == "Reorder Now":
+            st.error(f"**Inventory Alert:** {sku_risk_row['recommended_action']}")
+        elif quad == "Markdown-Clear":
+            st.warning(f"**Inventory Alert:** {sku_risk_row['recommended_action']}")
+        elif quad == "Watch-Volatile":
+            st.info(f"**Inventory Alert:** {sku_risk_row['recommended_action']}")
+        else:
+            st.success(f"**Inventory Status:** {sku_risk_row['recommended_action']}")
+            
+        # Plot sales history (last 60 days of history) + future forecast (42 days)
+        st.subheader("Historical Sales & Future Forecast Timeline")
+        
+        # Prepare historical plot data (last 60 days)
+        hist_plot = sku_sales_hist.tail(60).copy()
+        hist_dates = pd.to_datetime(hist_plot["date"]).dt.date
+        hist_sales = hist_plot["units_sold"].values
+        
+        # Prepare forecast plot data
+        fc_dates = pd.to_datetime(sku_fc["date"]).dt.date
+        fc_point = sku_fc["forecast_units"].values
+        fc_lower = sku_fc["forecast_lower_80"].values
+        fc_upper = sku_fc["forecast_upper_80"].values
+        
+        # Matplotlib visualization
+        fig2, ax2 = plt.subplots(figsize=(12, 5))
+        
+        # Plot historical sales
+        ax2.plot(hist_dates, hist_sales, label="Historical Sales", color="#4b5563", marker="o", markersize=4, linewidth=1.5)
+        
+        # Plot forecast point estimate
+        ax2.plot(fc_dates, fc_point, label="Forecast Demand", color="#6366f1", marker="s", markersize=4, linewidth=2)
+        
+        # Plot confidence interval bounds
+        ax2.fill_between(fc_dates, fc_lower, fc_upper, color="#6366f1", alpha=0.2, label="80% Uncertainty Interval")
+        
+        # Vertical dotted line indicating where forecast begins
+        forecast_start_date = fc_dates.iloc[0]
+        ax2.axvline(x=forecast_start_date, color="#ef4444", linestyle="--", alpha=0.7, label="Forecast Start (2026-07-01)")
+        
+        ax2.set_title(f"Sales Trend and 6-Week Demand Forecast for SKU: {selected_sku}", fontsize=14, fontweight="bold")
+        ax2.set_xlabel("Date", fontsize=11)
+        ax2.set_ylabel("Daily Units Sold", fontsize=11)
+        ax2.legend(loc="upper left")
+        
+        # Format axes
+        plt.xticks(rotation=30)
+        ax2.spines['top'].set_visible(False)
+        ax2.spines['right'].set_visible(False)
+        
+        st.pyplot(fig2)
