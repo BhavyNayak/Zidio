@@ -293,7 +293,7 @@ else:
         ax2.fill_between(fc_dates, fc_lower, fc_upper, color="#6366f1", alpha=0.2, label="80% Uncertainty Interval")
         
         # Vertical dotted line indicating where forecast begins
-        forecast_start_date = fc_dates.iloc[0]
+        forecast_start_date = fc_dates[0]
         ax2.axvline(x=forecast_start_date, color="#ef4444", linestyle="--", alpha=0.7, label="Forecast Start (2026-07-01)")
         
         ax2.set_title(f"Sales Trend and 6-Week Demand Forecast for SKU: {selected_sku}", fontsize=14, fontweight="bold")
