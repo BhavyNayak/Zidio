@@ -248,27 +248,27 @@ else:
     
     # Render Developer Card in the sidebar footer
     st.sidebar.markdown("""
-    <div class="profile-card">
-        <div class="profile-badge">Developer Portfolio</div>
-        <div class="profile-name">Bhavy Nayak</div>
-        <div class="profile-title">AI/ML Developer — LLM Agents & Backend Systems</div>
-        
-        <div class="profile-section-title">Core Stack</div>
-        <div class="profile-info">🐍 Python · ⚙️ LangChain · ⚡ FastAPI · 🐘 PostgreSQL</div>
-        
-        <div class="profile-section-title">Production Experience</div>
-        <div class="profile-info">Developed AI accountant agents & microservices with secure, multi-model tool call workflows.</div>
-        
-        <a href="https://contra.com/bhavy_nayak_steq0ui7/work?r=bhavy_nayak_steq0ui7" target="_blank" class="profile-link-btn">🌐 View Full Portfolio</a>
-        <a href="https://cal.com/bhavynayak" target="_blank" class="profile-link-secondary">📅 Schedule a Call</a>
-        
-        <div class="profile-socials">
-            <a href="https://github.com/BhavyNayak" target="_blank" class="profile-social-icon">💻 GitHub</a>
-            <a href="https://www.linkedin.com/in/bhavynayak" target="_blank" class="profile-social-icon">👔 LinkedIn</a>
-            <a href="mailto:bhavynayak@outlook.com" class="profile-social-icon">📧 Email</a>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="profile-card">
+<div class="profile-badge">Developer Portfolio</div>
+<div class="profile-name">Bhavy Nayak</div>
+<div class="profile-title">AI/ML Developer — LLM Agents & Backend Systems</div>
+
+<div class="profile-section-title">Core Stack</div>
+<div class="profile-info">🐍 Python · ⚙️ LangChain · ⚡ FastAPI · 🐘 PostgreSQL</div>
+
+<div class="profile-section-title">Production Experience</div>
+<div class="profile-info">Developed AI accountant agents & microservices with secure, multi-model tool call workflows.</div>
+
+<a href="https://contra.com/bhavy_nayak_steq0ui7/work?r=bhavy_nayak_steq0ui7" target="_blank" class="profile-link-btn">🌐 View Full Portfolio</a>
+<a href="https://cal.com/bhavynayak" target="_blank" class="profile-link-secondary">📅 Schedule a Call</a>
+
+<div class="profile-socials">
+<a href="https://github.com/BhavyNayak" target="_blank" class="profile-social-icon">💻 GitHub</a>
+<a href="https://www.linkedin.com/in/bhavynayak" target="_blank" class="profile-social-icon">👔 LinkedIn</a>
+<a href="mailto:bhavynayak@outlook.com" class="profile-social-icon">📧 Email</a>
+</div>
+</div>
+""", unsafe_allow_html=True)
     
     # Calculate executive metrics for the current view
     total_sales_at_risk = filtered_risk["stockout_risk_val"].sum()
