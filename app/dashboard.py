@@ -84,6 +84,106 @@ st.markdown("""
         color: #6b7280;
         margin-top: 6px;
     }
+    
+    /* Profile Card Styling */
+    .profile-card {
+        background: rgba(30, 41, 59, 0.45);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+    .profile-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 2px;
+    }
+    .profile-title {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    .profile-badge {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .profile-section-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #6b7280;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-top: 12px;
+        margin-bottom: 6px;
+    }
+    .profile-info {
+        font-size: 12px;
+        color: #d1d5db;
+        line-height: 1.5;
+        margin-bottom: 4px;
+    }
+    .profile-link-btn {
+        display: block;
+        text-align: center;
+        background: #6366f1;
+        color: #ffffff !important;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none !important;
+        margin-top: 14px;
+        transition: background 0.2s ease;
+    }
+    .profile-link-btn:hover {
+        background: #4f46e5;
+    }
+    .profile-link-secondary {
+        display: block;
+        text-align: center;
+        background: transparent;
+        color: #9ca3af !important;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 6px;
+        text-decoration: none !important;
+        margin-top: 8px;
+        transition: border 0.2s ease, color 0.2s ease;
+    }
+    .profile-link-secondary:hover {
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #ffffff !important;
+    }
+    .profile-socials {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 12px;
+    }
+    .profile-social-icon {
+        font-size: 12px;
+        color: #9ca3af !important;
+        text-decoration: none !important;
+        transition: color 0.2s ease;
+    }
+    .profile-social-icon:hover {
+        color: #818cf8 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -145,6 +245,30 @@ else:
         
     skus_in_cat = sorted(list(filtered_risk["sku_id"].unique()))
     selected_sku = st.sidebar.selectbox("SKU Deep-Dive Selection", skus_in_cat)
+    
+    # Render Developer Card in the sidebar footer
+    st.sidebar.markdown("""
+    <div class="profile-card">
+        <div class="profile-badge">Developer Portfolio</div>
+        <div class="profile-name">Bhavy Nayak</div>
+        <div class="profile-title">AI/ML Developer — LLM Agents & Backend Systems</div>
+        
+        <div class="profile-section-title">Core Stack</div>
+        <div class="profile-info">🐍 Python · ⚙️ LangChain · ⚡ FastAPI · 🐘 PostgreSQL</div>
+        
+        <div class="profile-section-title">Production Experience</div>
+        <div class="profile-info">Developed AI accountant agents & microservices with secure, multi-model tool call workflows.</div>
+        
+        <a href="https://contra.com/bhavy_nayak_steq0ui7/work?r=bhavy_nayak_steq0ui7" target="_blank" class="profile-link-btn">🌐 View Full Portfolio</a>
+        <a href="https://cal.com/bhavynayak" target="_blank" class="profile-link-secondary">📅 Schedule a Call</a>
+        
+        <div class="profile-socials">
+            <a href="https://github.com/BhavyNayak" target="_blank" class="profile-social-icon">💻 GitHub</a>
+            <a href="https://www.linkedin.com/in/bhavynayak" target="_blank" class="profile-social-icon">👔 LinkedIn</a>
+            <a href="mailto:bhavynayak@outlook.com" class="profile-social-icon">📧 Email</a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Calculate executive metrics for the current view
     total_sales_at_risk = filtered_risk["stockout_risk_val"].sum()
