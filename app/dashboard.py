@@ -55,11 +55,31 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Helper function to check and auto-run pipeline if files are missing
+def ensure_data_exists():
+    processed_dir = "data/processed"
+    required_files = ["risk_decisions.csv", "future_forecast.csv", "clean_sales.csv"]
+    missing = [f for f in required_files if not os.path.exists(os.path.join(processed_dir, f))]
+    
+    if missing:
+        # Import pipeline functions inline to prevent circular imports on startup
+        from src.generate_data import generate_synthetic_data
+        from src.pipeline import run_pipeline
+        from src.forecast import train_and_save_model
+        from src.risk import run_risk_scoring
+        
+        generate_synthetic_data()
+        run_pipeline()
+        train_and_save_model()
+        run_risk_scoring()
+
+# Run the check before loading data
+ensure_data_exists()
+
 # Helper function to load data safely
 @st.cache_data
 def load_data():
     processed_dir = "data/processed"
-    raw_dir = "data/raw"
     
     try:
         df_risk = pd.read_csv(os.path.join(processed_dir, "risk_decisions.csv"))
