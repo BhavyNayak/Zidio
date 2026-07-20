@@ -57,9 +57,9 @@ Make sure Python (>= 3.9) and `pip` are installed.
 ## 4. Backtest Results
 We evaluated both models using rolling-origin cross-validation (3 time-split folds, each with a 6-week forecasting horizon) to prevent future leakage. The primary metric chosen is **WAPE** (Weighted Absolute Percentage Error) at the daily SKU level:
 
-* **Seasonal-Naive Baseline WAPE**: **80.80%**
-* **HistGradientBoostingRegressor Model WAPE**: **74.68%**
-* **WAPE Reduction**: **+6.12% relative improvement**
+* **Seasonal-Naive Baseline WAPE**: **80.72%**
+* **HistGradientBoostingRegressor Model WAPE**: **75.03%**
+* **WAPE Reduction**: **+5.69% relative improvement**
 
 Our Machine Learning model successfully outperformed the seasonal baseline across every test fold and was selected as the active model for future forecasts.
 
@@ -74,7 +74,7 @@ Our Machine Learning model successfully outperformed the seasonal baseline acros
 
 ## 6. Deployment Notes
 * **FastAPI Service**: Ready for deployment on **Render**, **Railway**, or **AWS App Runner** via `uvicorn service.main:app --host 0.0.0.0 --port $PORT`.
-* **Streamlit Dashboard**: Can be deployed directly on **Streamlit Community Cloud** or **Hugging Face Spaces** by linking the GitHub repository.
+* **Streamlit Dashboard**: Live deployment is available at [project-foresight-bhavy.streamlit.app](https://project-foresight-bhavy.streamlit.app/).
 
 ---
 

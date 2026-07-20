@@ -21,46 +21,71 @@ st.set_page_config(
 
 # Custom premium CSS styling for metrics and layout
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-    .reportview-container {
-        background: #0f1116;
+    html, body, [class*="css"] {
+        font-family: 'Outfit', sans-serif;
     }
     .kpi-card {
-        background-color: #1a1f29;
-        padding: 20px;
-        border-radius: 10px;
-        border-left: 5px solid #4f46e5;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 15px;
+        background: rgba(30, 41, 59, 0.45);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left: 5px solid #6366f1;
+        padding: 22px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        margin-bottom: 20px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 25px rgba(99, 102, 241, 0.15);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-left: 5px solid #6366f1;
     }
     .kpi-card.stockout {
+        border-left: 5px solid #ef4444;
+    }
+    .kpi-card.stockout:hover {
+        box-shadow: 0 12px 25px rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.3);
         border-left: 5px solid #ef4444;
     }
     .kpi-card.overstock {
         border-left: 5px solid #f59e0b;
     }
+    .kpi-card.overstock:hover {
+        box-shadow: 0 12px 25px rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-left: 5px solid #f59e0b;
+    }
     .kpi-card.healthy {
         border-left: 5px solid #10b981;
     }
+    .kpi-card.healthy:hover {
+        box-shadow: 0 12px 25px rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-left: 5px solid #10b981;
+    }
     .kpi-title {
-        font-size: 14px;
+        font-size: 13px;
         color: #9ca3af;
         text-transform: uppercase;
         font-weight: 600;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
     }
     .kpi-value {
-        font-size: 28px;
+        font-size: 26px;
         color: #ffffff;
         font-weight: 700;
     }
     .kpi-subtitle {
-        font-size: 12px;
+        font-size: 11px;
         color: #6b7280;
-        margin-top: 5px;
+        margin-top: 6px;
     }
 </style>
-""", unsafe_allow_html=True)
+
 
 # Helper function to check and auto-run pipeline if files are missing
 def ensure_data_exists():
@@ -224,12 +249,19 @@ else:
         quadrant_counts = filtered_risk["quadrant"].value_counts().reset_index()
         quadrant_counts.columns = ["Quadrant", "Count"]
         
-        fig, ax = plt.subplots(figsize=(10, 3))
+        plt.style.use('dark_background')
+        fig, ax = plt.subplots(figsize=(10, 3.5), facecolor='#0f1116')
+        ax.set_facecolor('#131722')
         colors = ["#10b981" if q == "Healthy" else "#ef4444" if q == "Reorder Now" else "#f59e0b" if q == "Markdown-Clear" else "#6366f1" for q in quadrant_counts["Quadrant"]]
-        ax.barh(quadrant_counts["Quadrant"], quadrant_counts["Count"], color=colors, height=0.6)
-        ax.set_xlabel("Number of SKUs")
+        ax.barh(quadrant_counts["Quadrant"], quadrant_counts["Count"], color=colors, height=0.5)
+        ax.set_xlabel("Number of SKUs", fontsize=10, color="#9ca3af")
+        ax.grid(True, color="#1e222d", linestyle=":", alpha=0.5)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_color('#1e222d')
+        ax.spines['bottom'].set_color('#1e222d')
+        ax.tick_params(colors="#9ca3af", labelsize=9)
+        plt.tight_layout()
         st.pyplot(fig)
         
     with tab_deepdive:
@@ -280,30 +312,37 @@ else:
         fc_lower = sku_fc["forecast_lower_80"].values
         fc_upper = sku_fc["forecast_upper_80"].values
         
-        # Matplotlib visualization
-        fig2, ax2 = plt.subplots(figsize=(12, 5))
+        # Matplotlib visualization (dark-theme styled)
+        plt.style.use('dark_background')
+        fig2, ax2 = plt.subplots(figsize=(12, 5.5), facecolor='#0f1116')
+        ax2.set_facecolor('#131722')
         
         # Plot historical sales
-        ax2.plot(hist_dates, hist_sales, label="Historical Sales", color="#4b5563", marker="o", markersize=4, linewidth=1.5)
+        ax2.plot(hist_dates, hist_sales, label="Historical Sales", color="#9ca3af", marker="o", markersize=3, linewidth=1, alpha=0.8)
         
         # Plot forecast point estimate
-        ax2.plot(fc_dates, fc_point, label="Forecast Demand", color="#6366f1", marker="s", markersize=4, linewidth=2)
+        ax2.plot(fc_dates, fc_point, label="Forecast Demand", color="#6366f1", marker="o", markersize=4, linewidth=2)
         
         # Plot confidence interval bounds
-        ax2.fill_between(fc_dates, fc_lower, fc_upper, color="#6366f1", alpha=0.2, label="80% Uncertainty Interval")
+        ax2.fill_between(fc_dates, fc_lower, fc_upper, color="#6366f1", alpha=0.15, label="80% Uncertainty Interval")
         
         # Vertical dotted line indicating where forecast begins
         forecast_start_date = fc_dates[0]
-        ax2.axvline(x=forecast_start_date, color="#ef4444", linestyle="--", alpha=0.7, label="Forecast Start (2026-07-01)")
+        ax2.axvline(x=forecast_start_date, color="#ef4444", linestyle="--", alpha=0.8, linewidth=1.5, label="Forecast Start (2026-07-01)")
         
-        ax2.set_title(f"Sales Trend and 6-Week Demand Forecast for SKU: {selected_sku}", fontsize=14, fontweight="bold")
-        ax2.set_xlabel("Date", fontsize=11)
-        ax2.set_ylabel("Daily Units Sold", fontsize=11)
-        ax2.legend(loc="upper left")
+        ax2.set_title(f"Sales Trend and 6-Week Demand Forecast for SKU: {selected_sku}", fontsize=13, fontweight="bold", pad=15)
+        ax2.set_xlabel("Date", fontsize=10, color="#9ca3af")
+        ax2.set_ylabel("Daily Units Sold", fontsize=10, color="#9ca3af")
+        ax2.legend(loc="upper left", facecolor='#131722', edgecolor='none')
         
         # Format axes
-        plt.xticks(rotation=30)
+        plt.xticks(rotation=25)
+        ax2.grid(True, color="#1e222d", linestyle=":", alpha=0.5)
         ax2.spines['top'].set_visible(False)
         ax2.spines['right'].set_visible(False)
+        ax2.spines['left'].set_color('#1e222d')
+        ax2.spines['bottom'].set_color('#1e222d')
+        ax2.tick_params(colors="#9ca3af", labelsize=9)
+        plt.tight_layout()
         
         st.pyplot(fig2)
