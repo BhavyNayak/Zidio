@@ -158,7 +158,7 @@ else:
         st.markdown(f"""
         <div class="kpi-card stockout">
             <div class="kpi-title">Revenue Sales At Risk</div>
-            <div class="kpi-value">₹{total_sales_at_risk:,.0f}</div>
+            <div class="kpi-value">\u20b9{total_sales_at_risk:,.0f}</div>
             <div class="kpi-subtitle">Due to projected stockouts before delivery</div>
         </div>
         """, unsafe_allow_html=True)
@@ -167,7 +167,7 @@ else:
         st.markdown(f"""
         <div class="kpi-card overstock">
             <div class="kpi-title">Capital Locked In Overstock</div>
-            <div class="kpi-value">₹{total_capital_locked:,.0f}</div>
+            <div class="kpi-value">\u20b9{total_capital_locked:,.0f}</div>
             <div class="kpi-subtitle">Excess stock beyond 6-week demand</div>
         </div>
         """, unsafe_allow_html=True)
@@ -276,7 +276,7 @@ else:
         meta_col1, meta_col2, meta_col3, meta_col4 = st.columns(4)
         with meta_col1:
             st.metric("Category", f"{sku_risk_row['category']} ({sku_risk_row['subcategory']})")
-            st.metric("Unit Cost", f"₹{sku_risk_row['unit_cost']:,.0f}")
+            st.metric("Unit Cost", f"\u20b9{sku_risk_row['unit_cost']:,.0f}")
         with meta_col2:
             st.metric("Stock On Hand", f"{sku_risk_row['on_hand_units']:.0f} units")
             st.metric("Stock On Order", f"{sku_risk_row['on_order_units']:.0f} units")
