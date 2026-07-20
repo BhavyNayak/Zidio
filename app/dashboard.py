@@ -1,8 +1,14 @@
 import os
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
+
+# Add parent directory to sys.path to resolve 'src' import on Streamlit Cloud
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
 # Configure page settings
 st.set_page_config(
