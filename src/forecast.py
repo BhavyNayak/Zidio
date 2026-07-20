@@ -27,7 +27,7 @@ def build_seasonal_naive_forecast(train_df, test_df):
     # Pre-calculate day_of_week means for each SKU
     # Group by sku_id and day_of_week on the last 28 days of training data to capture recent seasonality
     train_df = train_df.copy()
-    train_df["date_dt"] = pd.to_datetime(train_df["date"])
+    train_df["date_dt"] = pd.to_datetime([datetime.strptime(x, "%Y-%m-%d") for x in train_df["date"].astype(str)])
     max_train_date = train_df["date_dt"].max()
     recent_train = train_df[train_df["date_dt"] > (max_train_date - timedelta(days=28))]
     
@@ -84,7 +84,7 @@ def run_backtest(df):
     """
     print("\nStarting rolling-origin cross-validation (backtesting)...")
     df = df.copy()
-    df["date_dt"] = pd.to_datetime(df["date"])
+    df["date_dt"] = pd.to_datetime([datetime.strptime(x, "%Y-%m-%d") for x in df["date"].astype(str)])
     
     # Unique dates sorted
     unique_dates = sorted(df["date_dt"].unique())
@@ -177,7 +177,7 @@ def recursive_forecast(df, model, use_baseline, std_residuals, forecast_horizon=
     Uses recursive forecast: updates lags and rolling stats dynamically for future predictions.
     """
     df = df.copy()
-    df["date_dt"] = pd.to_datetime(df["date"])
+    df["date_dt"] = pd.to_datetime([datetime.strptime(x, "%Y-%m-%d") for x in df["date"].astype(str)])
     
     # End of history is 2026-06-30
     history_end = datetime(2026, 6, 30)
@@ -191,7 +191,7 @@ def recursive_forecast(df, model, use_baseline, std_residuals, forecast_horizon=
     
     # Let's read calendar file for future features
     df_calendar = pd.read_csv("data/raw/calendar.csv")
-    df_calendar["date"] = pd.to_datetime(df_calendar["date"]).dt.strftime("%Y-%m-%d")
+    df_calendar["date"] = df_calendar["date"].astype(str)
     
     df_sku = pd.read_csv("data/raw/sku_master.csv")
     
@@ -203,6 +203,13 @@ def recursive_forecast(df, model, use_baseline, std_residuals, forecast_horizon=
     sim_df = history_tail.copy()
     
     for d_str in future_dates_str:
+        # Precompute date components to bypass pd.to_datetime Cython bug
+        d_val = datetime.strptime(d_str, "%Y-%m-%d")
+        dow = d_val.weekday()
+        dom = d_val.day
+        q = (d_val.month - 1) // 3 + 1
+        m = d_val.month
+        
         # Generate prediction day-by-day
         # For date d_str, for all SKUs:
         # 1. Extract the features for d_str.
@@ -228,7 +235,11 @@ def recursive_forecast(df, model, use_baseline, std_residuals, forecast_horizon=
                 "is_holiday": cal_row["is_holiday"],
                 "promo_event": cal_row["promo_event"],
                 "season": cal_row["season"],
-                "units_sold": 0.0 # placeholder
+                "units_sold": 0.0, # placeholder
+                "day_of_week": dow,
+                "day_of_month": dom,
+                "quarter": q,
+                "month": m
             })
             
         df_today = pd.DataFrame(day_rows)
@@ -256,13 +267,8 @@ def recursive_forecast(df, model, use_baseline, std_residuals, forecast_horizon=
                     "units_sold_roll_mean_28", "units_sold_roll_std_28"]:
             sim_df[col] = sim_df[col].fillna(0.0)
             
-        # Extract calendar components
-        sim_df["date_dt"] = pd.to_datetime(sim_df["date"])
-        sim_df["day_of_week"] = sim_df["date_dt"].dt.dayofweek
-        sim_df["day_of_month"] = sim_df["date_dt"].dt.day
-        sim_df["quarter"] = sim_df["date_dt"].dt.quarter
-        sim_df["month"] = sim_df["date_dt"].dt.month
-        sim_df.drop(columns=["date_dt"], inplace=True)
+        # Extract calendar components (already assigned in day_rows)
+        pass
         
         # Now predict for the current date
         today_mask = sim_df["date"] == d_str

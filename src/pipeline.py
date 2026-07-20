@@ -67,9 +67,9 @@ def run_pipeline():
     df_sales["revenue"] = df_sales["units_sold"] * df_sales["unit_price"]
     
     # 3. Clean calendar & inventory tables
-    df_calendar["date"] = pd.to_datetime(df_calendar["date"]).dt.strftime("%Y-%m-%d")
-    df_inventory["date"] = pd.to_datetime(df_inventory["date"]).dt.strftime("%Y-%m-%d")
-    df_sales["date"] = pd.to_datetime(df_sales["date"]).dt.strftime("%Y-%m-%d")
+    df_calendar["date"] = df_calendar["date"].astype(str)
+    df_inventory["date"] = df_inventory["date"].astype(str)
+    df_sales["date"] = df_sales["date"].astype(str)
     
     # Deduplicate inventory just in case
     df_inventory.drop_duplicates(subset=["date", "sku_id"], inplace=True)
@@ -130,13 +130,11 @@ def run_pipeline():
     df_merged["units_sold_roll_std_28"] = df_merged["units_sold_roll_std_28"].fillna(0.0)
     
     # C. Date and season categorical encoding helper
-    df_merged["date_dt"] = pd.to_datetime(df_merged["date"])
-    df_merged["day_of_week"] = df_merged["date_dt"].dt.dayofweek
-    df_merged["day_of_month"] = df_merged["date_dt"].dt.day
-    df_merged["quarter"] = df_merged["date_dt"].dt.quarter
-    
-    # Drop temp date_dt column
-    df_merged.drop(columns=["date_dt"], inplace=True)
+    from datetime import datetime
+    parsed_dates = [datetime.strptime(x, "%Y-%m-%d") for x in df_merged["date"].astype(str)]
+    df_merged["day_of_week"] = [d.weekday() for d in parsed_dates]
+    df_merged["day_of_month"] = [d.day for d in parsed_dates]
+    df_merged["quarter"] = [(d.month - 1) // 3 + 1 for d in parsed_dates]
     
     # 6. Save cleaned data
     output_path = os.path.join(processed_dir, "clean_sales.csv")

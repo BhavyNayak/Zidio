@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
+from datetime import datetime
 
 # Add parent directory to sys.path to resolve 'src' import on Streamlit Cloud
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -270,11 +271,11 @@ else:
         
         # Prepare historical plot data (last 60 days)
         hist_plot = sku_sales_hist.tail(60).copy()
-        hist_dates = pd.to_datetime(hist_plot["date"]).dt.date
+        hist_dates = [datetime.strptime(x, "%Y-%m-%d").date() for x in hist_plot["date"].astype(str)]
         hist_sales = hist_plot["units_sold"].values
         
         # Prepare forecast plot data
-        fc_dates = pd.to_datetime(sku_fc["date"]).dt.date
+        fc_dates = [datetime.strptime(x, "%Y-%m-%d").date() for x in sku_fc["date"].astype(str)]
         fc_point = sku_fc["forecast_units"].values
         fc_lower = sku_fc["forecast_lower_80"].values
         fc_upper = sku_fc["forecast_upper_80"].values
