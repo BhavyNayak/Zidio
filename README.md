@@ -9,6 +9,10 @@ To solve this, Project FORESIGHT delivers an automated, reproducible forecasting
 3. A financial risk scoring engine that computes rupee impact (sales at risk and locked capital) and groups SKUs into a 4-quadrant decisioning grid.
 4. User-friendly entry points (an interactive Streamlit dashboard for operations planners and a FastAPI microservice for systems integration).
 
+### Live Access & Demos
+* **🔮 Live Streamlit Dashboard**: [project-foresight-bhavy.streamlit.app](https://project-foresight-bhavy.streamlit.app/)
+* **🎥 Video Walkthrough Demo**: [Watch Demo on Google Drive](https://drive.google.com/file/d/1809cpRuIpaNLXYDTYUa60h8v9nVWxJaq/view?usp=sharing)
+
 ---
 
 ## 2. Data Description & Ingestion Sources
