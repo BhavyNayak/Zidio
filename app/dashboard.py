@@ -85,6 +85,7 @@ st.markdown("""
         margin-top: 6px;
     }
 </style>
+""", unsafe_allow_html=True)
 
 
 # Helper function to check and auto-run pipeline if files are missing
